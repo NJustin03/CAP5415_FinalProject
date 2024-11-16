@@ -259,7 +259,8 @@ def run_main(FLAGS):
     out.write("Torch device selected: " + ("cuda" if use_cuda else "cpu") + "\n")
     
     # Initialize the model and send to device 
-    model = ConvNet(FLAGS.mode).to(device)
+    model = models.resnet18()
+    # model = ConvNet(FLAGS.mode).to(device)
     
     # ======================================================================
     # Define loss function.
