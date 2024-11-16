@@ -33,7 +33,7 @@ class Car(Dataset):
         img_path = os.path.join(self.img_dir, img_filename)
 
         # Load and transform the image
-        image = Image.open(img_path)
+        image = Image.open(img_path).convert('RGB')
         if self.transform:
             image = self.transform(image)
 
@@ -60,8 +60,10 @@ if __name__ == '__main__':
 
     # Load pre-trained ResNet
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    #device = torch.device("cpu")
     resnet = models.resnet18(pretrained=True)
-    num_classes = 196 
+    num_classes = 196 + 1
     resnet.fc = nn.Linear(resnet.fc.in_features, num_classes)
     resnet = resnet.to(device)
 
@@ -71,15 +73,39 @@ if __name__ == '__main__':
 
     # Training loop
     num_epochs = 5
-    for epoch in range(num_epochs):
-        resnet.train()
-        running_loss = 0.0
-        for inputs, labels in train_loader:
-            inputs, labels = inputs.to(device), labels.to(device)
-            optimizer.zero_grad()
-            outputs = resnet(inputs)
-            loss = criterion(outputs, labels)
-            loss.backward()
-            optimizer.step()
-            running_loss += loss.item()
-        print(f"Epoch {epoch+1}/{num_epochs}, Loss: {running_loss/len(train_loader):.4f}")
+for epoch in range(num_epochs):
+    resnet.train()
+    running_loss = 0.0
+    correct_predictions = 0  # Counter for correct predictions
+    total_samples = 0  # Counter for total samples processed
+    for inputs, labels in train_loader:
+        inputs, labels = inputs.to(device), labels.to(device)
+        
+        optimizer.zero_grad()
+        
+        # Forward pass
+        outputs = resnet(inputs)
+        
+        # Calculate the loss
+        loss = criterion(outputs, labels)
+        
+        # Backward pass and optimization
+        loss.backward()
+        optimizer.step()
+        
+        # Update running loss
+        running_loss += loss.item()
+        
+        # Get the predicted class labels (index of max logit)
+        _, predicted = torch.max(outputs, 1)
+        
+        # Update the number of correct predictions
+        correct_predictions += (predicted == labels).sum().item()
+        total_samples += labels.size(0)
+    
+    # Calculate accuracy for this epoch
+    accuracy = 100 * correct_predictions / total_samples
+    
+    # Print the loss and accuracy for the epoch
+    print(f"Epoch {epoch+1}/{num_epochs}, Loss: {running_loss/len(train_loader):.4f}, Accuracy: {accuracy:.2f}%")
+
