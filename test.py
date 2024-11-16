@@ -259,7 +259,7 @@ def run_main(FLAGS):
     out.write("Torch device selected: " + ("cuda" if use_cuda else "cpu") + "\n")
     
     # Initialize the model and send to device 
-    model = models.resnet18().to(device)
+    model = models.resnet18(weights=models.ResNet18_Weights.IMAGENET1K_V1).to(device)
     # model = ConvNet(FLAGS.mode).to(device)
     
     # ======================================================================
