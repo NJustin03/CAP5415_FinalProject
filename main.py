@@ -62,7 +62,7 @@ if __name__ == '__main__':
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     #device = torch.device("cpu")
-    resnet = models.resnet18(pretrained=True)
+    resnet = models.resnet18(weights=models.ResNet18_Weights.IMAGENET1K_V1)
     num_classes = 196
     resnet.fc = nn.Linear(resnet.fc.in_features, num_classes)
     resnet = resnet.to(device)
