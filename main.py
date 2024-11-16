@@ -20,20 +20,20 @@ class Car(Dataset):
         self.img_dir = img_dir
         self.transform = transform
 
-        # Map textual labels to integers
-        self.label_mapping = {label: idx for idx, label in enumerate(self.annotations['true_class_name'].unique())}
-
     def __len__(self):
         return len(self.annotations)
 
     def __getitem__(self, idx):
-        # Get the image path and label
-        img_path = os.path.join(self.img_dir, self.annotations.iloc[idx, 0])
-        label = self.annotations.iloc[idx, 1]
-        label = self.label_mapping[label]  # Convert text label to integer
-        image = Image.open(img_path)
+        # Get the filename and label from the CSV
+        img_filename = str(self.annotations.iloc[idx, 6])
+        
+        label = self.annotations.iloc[idx, 4]
 
-        # Apply transformations
+        # Construct the image path
+        img_path = os.path.join(self.img_dir, img_filename)
+
+        # Load and transform the image
+        image = Image.open(img_path)
         if self.transform:
             image = self.transform(image)
 
@@ -61,7 +61,7 @@ if __name__ == '__main__':
     # Load pre-trained ResNet
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     resnet = models.resnet18(pretrained=True)
-    num_classes = len(train_dataset.label_mapping)  # Use the dataset's mapping
+    num_classes = 196 
     resnet.fc = nn.Linear(resnet.fc.in_features, num_classes)
     resnet = resnet.to(device)
 
