@@ -25,9 +25,9 @@ out = open("output.txt", "w")
 
 # Set hyperparameters
 MODEL_NUM = 1
-BATCH_SIZE = 4
-NUM_EPOCHS = 30
-LEARNING_RATE = 0.004
+BATCH_SIZE = 32
+NUM_EPOCHS = 5
+LEARNING_RATE = 0.001
 
 
 class Car(Dataset):
@@ -50,7 +50,7 @@ class Car(Dataset):
 
     def __getitem__(self, idx):
         # Get the image path and label
-        img_path = os.path.join(self.img_dir, str(self.annotations.iloc[idx, 6]))
+        img_path = os.path.join(self.img_dir, str(self.annotations.iloc[idx, 6]).strip("'"))
         label = self.annotations.iloc[idx, 4]
         image = Image.open(img_path).convert('RGB')
 
@@ -259,7 +259,7 @@ def run_main(FLAGS):
     out.write("Torch device selected: " + ("cuda" if use_cuda else "cpu") + "\n")
     
     # Initialize the model and send to device 
-    model = models.resnet18()
+    model = models.resnet18().to(device)
     # model = ConvNet(FLAGS.mode).to(device)
     
     # ======================================================================
@@ -268,7 +268,8 @@ def run_main(FLAGS):
     
     # ======================================================================
     # Define optimizer function.
-    optimizer = optim.SGD(model.parameters(), lr=FLAGS.learning_rate)
+    optimizer = optim.Adam(model.parameters(), lr=FLAGS.learning_rate)
+    # optimizer = optim.SGD(model.parameters(), lr=FLAGS.learning_rate)
     
     # Create transformations to apply to each data sample 
     # Can specify variations such as image flip, color flip, random crop, ...
