@@ -88,8 +88,8 @@ def train(model, device, train_loader, optimizer, criterion):
 
     train_loss = float(np.mean(losses))
     train_acc = 100. * correct / len(train_loader.dataset)
-    out.write('Train set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(train_loss, correct, len(train_loader.dataset), train_acc))
-    print('Train set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(train_loss, correct, len(train_loader.dataset), train_acc))
+    out.write('Train set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)'.format(train_loss, correct, len(train_loader.dataset), train_acc))
+    print('Train set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)'.format(train_loss, correct, len(train_loader.dataset), train_acc))
     return train_loss, train_acc
 
 
@@ -118,8 +118,8 @@ def test(model, device, test_loader, criterion):
 
     test_loss = float(np.mean(losses))
     accuracy = 100. * correct / len(test_loader.dataset)
-    out.write('Test set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n\n'.format(test_loss, correct, len(test_loader.dataset), accuracy))
-    print('Test set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n\n'.format(test_loss, correct, len(test_loader.dataset), accuracy))
+    out.write('Test set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(test_loss, correct, len(test_loader.dataset), accuracy))
+    print('Test set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(test_loss, correct, len(test_loader.dataset), accuracy))
     return test_loss, accuracy
 
 
