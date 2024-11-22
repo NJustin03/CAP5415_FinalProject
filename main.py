@@ -117,10 +117,6 @@ def resnet_test(resnet, test_loader, criterion, optimizer):
         # Calculate the loss
         loss = criterion(outputs, labels)
         
-        # Backward pass and optimization
-        loss.backward()
-        optimizer.step()
-        
         # Update running loss
         running_loss += loss.item()
         
