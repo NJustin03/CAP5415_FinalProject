@@ -45,23 +45,33 @@ transform = transforms.Compose([
     transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
 ])
 
-def resnet_model(train_loader, test_loader):
-    resnet = models.resnet18(weights=models.ResNet18_Weights.IMAGENET1K_V1)
+def resnet_model(train_loader, test_loader, resnet_type, out):
+    if resnet_type == 34:
+        resnet = models.resnet34(weights=models.ResNet34_Weights.IMAGENET1K_V1)
+        learning_rate = 0.005
+    elif resnet_type == 18:
+        resnet = models.resnet18(weights=models.ResNet18_Weights.IMAGENET1K_V1)
+        learning_rate = 0.001
+        
     num_classes = 196
     resnet.fc = nn.Linear(resnet.fc.in_features, num_classes)
     resnet = resnet.to(device)
 
-    # Define loss and optimizer
+    # Define loss and optimizer and number of epochs
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.Adam(resnet.parameters(), lr=0.001)
-    num_epochs = 5
+    optimizer = optim.Adam(resnet.parameters(), lr=learning_rate)
+    num_epochs = 2
 
     for epoch in range(num_epochs):
         train_loss, train_accuracy = resnet_train(resnet, train_loader, criterion, optimizer)
         print(f"Epoch {epoch+1}/{num_epochs}, Train Loss: {train_loss/len(train_loader):.4f}, Train Accuracy: {train_accuracy:.2f}%")
+        out.write(f"Epoch {epoch+1}/{num_epochs}, Train Loss: {train_loss/len(train_loader):.4f}, Train Accuracy: {train_accuracy:.2f}%\n")
 
         test_loss, test_accuracy = resnet_test(resnet, test_loader, criterion, optimizer)
         print(f"Epoch {epoch+1}/{num_epochs}, Test Loss: {test_loss/len(train_loader):.4f}, Test Accuracy: {test_accuracy:.2f}%")
+        out.write(f"Epoch {epoch+1}/{num_epochs}, Test Loss: {test_loss/len(train_loader):.4f}, Test Accuracy: {test_accuracy:.2f}%\n")
+
+        out.write("\n")
 
 
 def resnet_train(resnet, train_loader, criterion, optimizer):
@@ -133,6 +143,7 @@ def resnet_test(resnet, test_loader, criterion, optimizer):
     return running_loss, accuracy
 
 
+
 if __name__ == '__main__':
     # Load class labels and annotations
     train_csv = 'cars_train_labels.csv'
@@ -146,9 +157,13 @@ if __name__ == '__main__':
     train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
     test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False)
 
+    out = open("output.txt", "w")
+
     # Load pre-trained ResNet
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    resnet_model(train_loader, test_loader)
+    resnet_type = 18
+    resnet_model(train_loader, test_loader, resnet_type, out)
 
+    out.close()
     #device = torch.device("cpu")
     

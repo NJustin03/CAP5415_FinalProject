@@ -1,1 +1,6 @@
-Torch device selected: cuda
+Epoch 1/2, Train Loss: 5.1287, Train Accuracy: 2.16%
+Epoch 1/2, Test Loss: 4.7375, Test Accuracy: 3.72%
+
+Epoch 2/2, Train Loss: 3.8695, Train Accuracy: 11.28%
+Epoch 2/2, Test Loss: 3.6765, Test Accuracy: 13.44%
+
