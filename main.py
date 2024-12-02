@@ -63,20 +63,20 @@ def resnet_model(train_loader, test_loader, resnet_type, out):
     num_epochs = 2
 
     for epoch in range(num_epochs):
-        train_loss, train_accuracy = resnet_train(resnet, train_loader, criterion, optimizer)
+        train_loss, train_accuracy = train_loop(resnet, train_loader, criterion, optimizer)
         print(f"Epoch {epoch+1}/{num_epochs}, Train Loss: {train_loss/len(train_loader):.4f}, Train Accuracy: {train_accuracy:.2f}%")
         out.write(f"Epoch {epoch+1}/{num_epochs}, Train Loss: {train_loss/len(train_loader):.4f}, Train Accuracy: {train_accuracy:.2f}%\n")
 
-        test_loss, test_accuracy = resnet_test(resnet, test_loader, criterion, optimizer)
+        test_loss, test_accuracy = test_loop(resnet, test_loader, criterion, optimizer)
         print(f"Epoch {epoch+1}/{num_epochs}, Test Loss: {test_loss/len(train_loader):.4f}, Test Accuracy: {test_accuracy:.2f}%")
         out.write(f"Epoch {epoch+1}/{num_epochs}, Test Loss: {test_loss/len(train_loader):.4f}, Test Accuracy: {test_accuracy:.2f}%\n")
 
         out.write("\n")
 
 
-def resnet_train(resnet, train_loader, criterion, optimizer):
+def train_loop(model, train_loader, criterion, optimizer):
     # Training loop
-    resnet.train()
+    model.train()
     running_loss = 0.0
     correct_predictions = 0  # Counter for correct predictions
     total_samples = 0  # Counter for total samples processed
@@ -86,7 +86,7 @@ def resnet_train(resnet, train_loader, criterion, optimizer):
         optimizer.zero_grad()
         
         # Forward pass
-        outputs = resnet(inputs)
+        outputs = model(inputs)
         
         # Calculate the loss
         loss = criterion(outputs, labels)
@@ -110,9 +110,9 @@ def resnet_train(resnet, train_loader, criterion, optimizer):
     
     return running_loss, accuracy
 
-def resnet_test(resnet, test_loader, criterion, optimizer):
+def test_loop(model, test_loader, criterion, optimizer):
     # Testing loop
-    resnet.eval()
+    model.eval()
     running_loss = 0.0
     correct_predictions = 0  # Counter for correct predictions
     total_samples = 0  # Counter for total samples processed
@@ -122,7 +122,7 @@ def resnet_test(resnet, test_loader, criterion, optimizer):
         optimizer.zero_grad()
         
         # Forward pass
-        outputs = resnet(inputs)
+        outputs = model(inputs)
         
         # Calculate the loss
         loss = criterion(outputs, labels)
@@ -142,7 +142,33 @@ def resnet_test(resnet, test_loader, criterion, optimizer):
 
     return running_loss, accuracy
 
+def vit_model(train_loader, test_loader, vit_type, out):
+    if vit_type == 'base':
+        vit = models.vit_b_16(weights=models.ViT_B_16_Weights.IMAGENET1K_V1)
+        learning_rate = 0.001
+    elif vit_type == 'large':
+        vit = models.vit_l_16(weights=models.ViT_L_16_Weights.IMAGENET1K_V1)
+        learning_rate = 0.0005
+        
+    num_classes = 196
+    vit.heads.head = nn.Linear(vit.heads.head.in_features, num_classes)
+    vit = vit.to(device)
 
+    # Define loss and optimizer and number of epochs
+    criterion = nn.CrossEntropyLoss()
+    optimizer = optim.Adam(vit.parameters(), lr=learning_rate)
+    num_epochs = 2
+
+    for epoch in range(num_epochs):
+        train_loss, train_accuracy = train_loop(vit, train_loader, criterion, optimizer)
+        print(f"Epoch {epoch+1}/{num_epochs}, Train Loss: {train_loss/len(train_loader):.4f}, Train Accuracy: {train_accuracy:.2f}%")
+        out.write(f"Epoch {epoch+1}/{num_epochs}, Train Loss: {train_loss/len(train_loader):.4f}, Train Accuracy: {train_accuracy:.2f}%\n")
+
+        test_loss, test_accuracy = test_loop(vit, test_loader, criterion, optimizer)
+        print(f"Epoch {epoch+1}/{num_epochs}, Test Loss: {test_loss/len(train_loader):.4f}, Test Accuracy: {test_accuracy:.2f}%")
+        out.write(f"Epoch {epoch+1}/{num_epochs}, Test Loss: {test_loss/len(train_loader):.4f}, Test Accuracy: {test_accuracy:.2f}%\n")
+
+        out.write("\n")
 
 if __name__ == '__main__':
     # Load class labels and annotations
@@ -161,9 +187,14 @@ if __name__ == '__main__':
 
     # Load pre-trained ResNet
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(device)
+    
     resnet_type = 18
-    resnet_model(train_loader, test_loader, resnet_type, out)
+    #resnet_model(train_loader, test_loader, resnet_type, out)
+
+    vit_type = 'base'
+    vit_model(train_loader, test_loader, vit_type, out)
 
     out.close()
-    #device = torch.device("cpu")
+    
     

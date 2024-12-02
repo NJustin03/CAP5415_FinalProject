@@ -1,6 +1,6 @@
-Epoch 1/2, Train Loss: 5.1287, Train Accuracy: 2.16%
-Epoch 1/2, Test Loss: 4.7375, Test Accuracy: 3.72%
+Epoch 1/2, Train Loss: 5.3768, Train Accuracy: 0.53%
+Epoch 1/2, Test Loss: 5.2251, Test Accuracy: 0.55%
 
-Epoch 2/2, Train Loss: 3.8695, Train Accuracy: 11.28%
-Epoch 2/2, Test Loss: 3.6765, Test Accuracy: 13.44%
+Epoch 2/2, Train Loss: 5.2551, Train Accuracy: 0.90%
+Epoch 2/2, Test Loss: 5.1318, Test Accuracy: 0.86%
 
