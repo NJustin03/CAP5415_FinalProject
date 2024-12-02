@@ -22,7 +22,7 @@ from torchvision import datasets, transforms
 # Set hyperparameters
 MODEL_NUM = 1
 BATCH_SIZE = 32
-NUM_EPOCHS = 5
+NUM_EPOCHS = 10
 LEARNING_RATE = 0.001
 # Output file
 out = open("output.txt", "w")
@@ -137,7 +137,8 @@ def run_main(FLAGS):
     # Choose model, criterion, optimizer #
     ######################################
     # Pick the model and weights
-    model = models.resnet18(weights=models.ResNet18_Weights.IMAGENET1K_V1)
+    # model = models.resnet18(weights=models.ResNet18_Weights.IMAGENET1K_V1)
+    model = models.shufflenet_v2_x1_0(weights=models.ShuffleNet_V2_X1_0_Weights.IMAGENET1K_V1)
     # Setup the output and send to device
     num_classes = 196
     model.fc = nn.Linear(model.fc.in_features, num_classes)
@@ -158,8 +159,8 @@ def run_main(FLAGS):
     # Load class labels and annotations
     train_csv = 'cars_train_labels-adjusted.csv'
     test_csv = 'cars_test_labels-adjusted.csv'
-    test_img_dir = 'cars_test/'
-    train_img_dir = 'cars_train/'
+    test_img_dir = '../cars_test/'
+    train_img_dir = '../cars_train/'
     # Load datasets for training and testing
     train_dataset = Car(csv_file=train_csv, img_dir=train_img_dir, transform=transform)
     test_dataset = Car(csv_file=test_csv, img_dir=test_img_dir, transform=transform)
