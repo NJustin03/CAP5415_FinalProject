@@ -7,6 +7,12 @@ import torch.optim as optim
 from torchvision import models
 from torch.utils.data import Dataset, DataLoader
 import torchvision.transforms as transforms
+import matplotlib.pyplot as plt
+
+train_accuracy_array = []
+test_accuracy_array = []
+test_loss_array = []
+train_loss_array = []
 
 class Car(Dataset):
     def __init__(self, csv_file, img_dir, transform=None):
@@ -45,30 +51,38 @@ transform = transforms.Compose([
     transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
 ])
 
-def resnet_model(train_loader, test_loader, resnet_type, out):
-    if resnet_type == 34:
-        resnet = models.resnet34(weights=models.ResNet34_Weights.IMAGENET1K_V1)
+def run_model(train_loader, test_loader, model_type, out):
+    if model_type == 34:
+        model = models.resnet34(weights=models.ResNet34_Weights.IMAGENET1K_V1)
         learning_rate = 0.005
-    elif resnet_type == 18:
-        resnet = models.resnet18(weights=models.ResNet18_Weights.IMAGENET1K_V1)
+    elif model_type == 18:
+        model = models.resnet18(weights=models.ResNet18_Weights.IMAGENET1K_V1)
+        learning_rate = 0.001
+    elif model_type == 'shufflenet':
+        model = models.shufflenet_v2_x1_0(weights=models.ShuffleNet_V2_X1_0_Weights.IMAGENET1K_V1)
         learning_rate = 0.001
         
     num_classes = 196
-    resnet.fc = nn.Linear(resnet.fc.in_features, num_classes)
-    resnet = resnet.to(device)
+    model.fc = nn.Linear(model.fc.in_features, num_classes)
+    model = model.to(device)
 
     # Define loss and optimizer and number of epochs
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.Adam(resnet.parameters(), lr=learning_rate)
+    optimizer = optim.Adam(model.parameters(), lr=learning_rate)
     num_epochs = 2
 
+    # Run testing and training loop
     for epoch in range(num_epochs):
-        train_loss, train_accuracy = train_loop(resnet, train_loader, criterion, optimizer)
+        train_loss, train_accuracy = train_loop(model, train_loader, criterion, optimizer)
         print(f"Epoch {epoch+1}/{num_epochs}, Train Loss: {train_loss/len(train_loader):.4f}, Train Accuracy: {train_accuracy:.2f}%")
+        train_accuracy_array.append(train_accuracy)
+        train_loss_array.append(train_loss/len(train_loader))
         out.write(f"Epoch {epoch+1}/{num_epochs}, Train Loss: {train_loss/len(train_loader):.4f}, Train Accuracy: {train_accuracy:.2f}%\n")
 
-        test_loss, test_accuracy = test_loop(resnet, test_loader, criterion, optimizer)
+        test_loss, test_accuracy = test_loop(model, test_loader, criterion, optimizer)
         print(f"Epoch {epoch+1}/{num_epochs}, Test Loss: {test_loss/len(train_loader):.4f}, Test Accuracy: {test_accuracy:.2f}%")
+        test_accuracy_array.append(train_accuracy)
+        test_loss_array.append(test_loss/len(train_loader))
         out.write(f"Epoch {epoch+1}/{num_epochs}, Test Loss: {test_loss/len(train_loader):.4f}, Test Accuracy: {test_accuracy:.2f}%\n")
 
         out.write("\n")
@@ -159,16 +173,35 @@ def vit_model(train_loader, test_loader, vit_type, out):
     optimizer = optim.Adam(vit.parameters(), lr=learning_rate)
     num_epochs = 2
 
+    # Run testing and training loop
     for epoch in range(num_epochs):
         train_loss, train_accuracy = train_loop(vit, train_loader, criterion, optimizer)
         print(f"Epoch {epoch+1}/{num_epochs}, Train Loss: {train_loss/len(train_loader):.4f}, Train Accuracy: {train_accuracy:.2f}%")
+        train_accuracy_array.append(train_accuracy)
+        train_loss_array.append(train_loss/len(train_loader))
         out.write(f"Epoch {epoch+1}/{num_epochs}, Train Loss: {train_loss/len(train_loader):.4f}, Train Accuracy: {train_accuracy:.2f}%\n")
 
         test_loss, test_accuracy = test_loop(vit, test_loader, criterion, optimizer)
         print(f"Epoch {epoch+1}/{num_epochs}, Test Loss: {test_loss/len(train_loader):.4f}, Test Accuracy: {test_accuracy:.2f}%")
+        test_accuracy_array.append(train_accuracy)
+        test_loss_array.append(test_loss/len(train_loader))
         out.write(f"Epoch {epoch+1}/{num_epochs}, Test Loss: {test_loss/len(train_loader):.4f}, Test Accuracy: {test_accuracy:.2f}%\n")
 
         out.write("\n")
+
+def plot_results(arr, title, linelabel, xlabel, ylabel):
+        plt.figure(figsize=(6, 6))
+        x = list(range(1, len(train_loss_array) + 1))
+        plt.plot(x, arr, label=linelabel)
+        plt.xlabel(xlabel)
+        plt.ylabel(ylabel)
+        plt.title(title)
+        plt.legend()
+        plt.grid(True)
+        # Save the plot instead of displaying it
+        save_path = os.path.abspath(os.path.join(".", f"{title.replace(' ', '_')}.png"))
+        plt.savefig(save_path)
+        plt.close()
 
 if __name__ == '__main__':
     # Load class labels and annotations
@@ -188,13 +221,19 @@ if __name__ == '__main__':
     # Load pre-trained ResNet
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(device)
-    
-    resnet_type = 18
-    #resnet_model(train_loader, test_loader, resnet_type, out)
+
+    model = "shufflenet"
+    run_model(train_loader, test_loader, model, out)
 
     vit_type = 'base'
-    vit_model(train_loader, test_loader, vit_type, out)
+    #vit_model(train_loader, test_loader, vit_type, out)
 
     out.close()
+
+    # Show the graphs
+    plot_results(train_loss_array, "Train Loss over Epochs", "Train Loss", "Epoch", "Train Loss")
+    plot_results(test_accuracy_array, "Train Accuracy over Epochs", "Train Accuracy", "Epoch", "Train Accuracy")
+    plot_results(test_loss_array, "Test Loss over Epochs", "Test Loss", "Epoch", "Test Loss")
+    plot_results(test_accuracy_array, "Test Accuracy over Epoch", "Test Accuracy", "Epoch", "Test Accuracy")
     
     
