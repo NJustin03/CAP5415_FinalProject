@@ -1,0 +1,1 @@
+Epoch 1/15, Train Loss: 4.6998, Train Accuracy: 4.80%

@@ -53,10 +53,10 @@ transform = transforms.Compose([
 
 def run_model(train_loader, test_loader, model_type, out):
     # Choose the model that we run
-    if model_type == "resnet34":
+    if model_type == 'resnet34':
         model = models.resnet34(weights=models.ResNet34_Weights.IMAGENET1K_V1)
         learning_rate = 0.005
-    elif model_type == "resnet18":
+    elif model_type == 'resnet18':
         model = models.resnet18(weights=models.ResNet18_Weights.IMAGENET1K_V1)
         learning_rate = 0.001
     elif model_type == 'shufflenet':
@@ -71,7 +71,7 @@ def run_model(train_loader, test_loader, model_type, out):
 
     # Our final classification layer 
     num_classes = 196
-    if model_type == 'efficientnets' or "efficientnetm":
+    if model_type == 'efficientnets' or model_type == 'efficientnetm':
         model.classifier[1] = nn.Linear(model.classifier[1].in_features, num_classes)
     else:
         model.fc = nn.Linear(model.fc.in_features, num_classes)
@@ -235,7 +235,7 @@ if __name__ == '__main__':
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(device)
 
-    model = "efficientnetm"
+    model = 'efficientnetm'
     run_model(train_loader, test_loader, model, out)
 
     vit_type = 'base'
