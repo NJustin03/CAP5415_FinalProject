@@ -52,24 +52,35 @@ transform = transforms.Compose([
 ])
 
 def run_model(train_loader, test_loader, model_type, out):
-    if model_type == 34:
+    # Choose the model that we run
+    if model_type == "resnet34":
         model = models.resnet34(weights=models.ResNet34_Weights.IMAGENET1K_V1)
         learning_rate = 0.005
-    elif model_type == 18:
+    elif model_type == "resnet18":
         model = models.resnet18(weights=models.ResNet18_Weights.IMAGENET1K_V1)
         learning_rate = 0.001
     elif model_type == 'shufflenet':
         model = models.shufflenet_v2_x1_0(weights=models.ShuffleNet_V2_X1_0_Weights.IMAGENET1K_V1)
         learning_rate = 0.001
-        
+    elif model_type == 'efficientnets':
+        model = models.efficientnet_v2_s(weights=models.EfficientNet_V2_S_Weights.IMAGENET1K_V1)
+        learning_rate = 0.001
+    elif model_type == 'efficientnetm':
+        model = models.efficientnet_v2_m(weights=models.EfficientNet_V2_M_Weights.IMAGENET1K_V1)
+        learning_rate = 0.001
+
+    # Our final classification layer 
     num_classes = 196
-    model.fc = nn.Linear(model.fc.in_features, num_classes)
+    if model_type == 'efficientnets' or "efficientnetm":
+        model.classifier[1] = nn.Linear(model.classifier[1].in_features, num_classes)
+    else:
+        model.fc = nn.Linear(model.fc.in_features, num_classes)
     model = model.to(device)
 
-    # Define loss and optimizer and number of epochs
+    # Loss and optimizer and number of epochs
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
-    num_epochs = 2
+    num_epochs = 15
 
     # Run testing and training loop
     for epoch in range(num_epochs):
@@ -81,7 +92,7 @@ def run_model(train_loader, test_loader, model_type, out):
 
         test_loss, test_accuracy = test_loop(model, test_loader, criterion, optimizer)
         print(f"Epoch {epoch+1}/{num_epochs}, Test Loss: {test_loss/len(train_loader):.4f}, Test Accuracy: {test_accuracy:.2f}%")
-        test_accuracy_array.append(train_accuracy)
+        test_accuracy_array.append(test_accuracy)
         test_loss_array.append(test_loss/len(train_loader))
         out.write(f"Epoch {epoch+1}/{num_epochs}, Test Loss: {test_loss/len(train_loader):.4f}, Test Accuracy: {test_accuracy:.2f}%\n")
 
@@ -157,13 +168,15 @@ def test_loop(model, test_loader, criterion, optimizer):
     return running_loss, accuracy
 
 def vit_model(train_loader, test_loader, vit_type, out):
+    # Choose our model
     if vit_type == 'base':
         vit = models.vit_b_16(weights=models.ViT_B_16_Weights.IMAGENET1K_V1)
         learning_rate = 0.001
     elif vit_type == 'large':
         vit = models.vit_l_16(weights=models.ViT_L_16_Weights.IMAGENET1K_V1)
         learning_rate = 0.0005
-        
+    
+    # Our final classification layer
     num_classes = 196
     vit.heads.head = nn.Linear(vit.heads.head.in_features, num_classes)
     vit = vit.to(device)
@@ -171,7 +184,7 @@ def vit_model(train_loader, test_loader, vit_type, out):
     # Define loss and optimizer and number of epochs
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(vit.parameters(), lr=learning_rate)
-    num_epochs = 2
+    num_epochs = 15
 
     # Run testing and training loop
     for epoch in range(num_epochs):
@@ -183,7 +196,7 @@ def vit_model(train_loader, test_loader, vit_type, out):
 
         test_loss, test_accuracy = test_loop(vit, test_loader, criterion, optimizer)
         print(f"Epoch {epoch+1}/{num_epochs}, Test Loss: {test_loss/len(train_loader):.4f}, Test Accuracy: {test_accuracy:.2f}%")
-        test_accuracy_array.append(train_accuracy)
+        test_accuracy_array.append(test_accuracy)
         test_loss_array.append(test_loss/len(train_loader))
         out.write(f"Epoch {epoch+1}/{num_epochs}, Test Loss: {test_loss/len(train_loader):.4f}, Test Accuracy: {test_accuracy:.2f}%\n")
 
@@ -222,7 +235,7 @@ if __name__ == '__main__':
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(device)
 
-    model = "shufflenet"
+    model = "efficientnetm"
     run_model(train_loader, test_loader, model, out)
 
     vit_type = 'base'
@@ -232,7 +245,7 @@ if __name__ == '__main__':
 
     # Show the graphs
     plot_results(train_loss_array, "Train Loss over Epochs", "Train Loss", "Epoch", "Train Loss")
-    plot_results(test_accuracy_array, "Train Accuracy over Epochs", "Train Accuracy", "Epoch", "Train Accuracy")
+    plot_results(train_accuracy_array, "Train Accuracy over Epochs", "Train Accuracy", "Epoch", "Train Accuracy")
     plot_results(test_loss_array, "Test Loss over Epochs", "Test Loss", "Epoch", "Test Loss")
     plot_results(test_accuracy_array, "Test Accuracy over Epoch", "Test Accuracy", "Epoch", "Test Accuracy")
     
